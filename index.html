@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>收盘前基金操作助手</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&family=Noto+Sans+SC:wght@300;400;500&display=swap');
+
+:root {
+  --bg: #f7f5f0;
+  --surface: #fefcf8;
+  --surface2: #f0ece3;
+  --border: #e0d9cc;
+  --border-dark: #c8bfaf;
+  --ink: #1a1610;
+  --ink-mid: #4a4438;
+  --ink-dim: #8a8070;
+  --ink-muted: #b8ad9e;
+  --red: #c0392b;
+  --red-light: #fdf0ee;
+  --red-border: #e8c4be;
+  --green: #1a7a4a;
+  --green-light: #eef6f1;
+  --green-border: #b8dcc8;
+  --gold: #a07828;
+  --gold-light: #fdf6e8;
+  --gold-border: #e0cc98;
+  --blue: #1a4a7a;
+  --blue-light: #eef2f8;
+  --accent: #8b5e3c;
+  --shadow: 0 1px 3px rgba(26,22,16,0.08), 0 4px 16px rgba(26,22,16,0.04);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Noto Sans SC', sans-serif;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* TOP BAR */
+#topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 28px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.brand { display: flex; align-items: baseline; gap: 10px; }
+.brand-name { font-family: 'Noto Serif SC', serif; font-size: 16px; font-weight: 600; color: var(--ink); letter-spacing: 0.04em; }
+.brand-tag { font-size: 11px; color: var(--ink-dim); font-weight: 300; letter-spacing: 0.06em; }
+.time-display { display: flex; align-items: center; gap: 16px; }
+.clock { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--ink-mid); letter-spacing: 0.05em; }
+.market-status { display: flex; align-items: center; gap: 5px; font-size: 11px; padding: 3px 10px; border-radius: 2px; letter-spacing: 0.04em; }
+.market-status.open { background: var(--green-light); color: var(--green); border: 1px solid var(--green-border); }
+.market-status.closed { background: var(--surface2); color: var(--ink-dim); border: 1px solid var(--border); }
+.status-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; animation: blink 2s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* MAIN */
+#main { flex: 1; display: flex; overflow: hidden; }
+
+/* LEFT PANEL */
+#holding-panel {
+  width: 300px; min-width: 300px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+
+.panel-section-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 11px; font-weight: 500; color: var(--ink-dim);
+  text-transform: uppercase; letter-spacing: 0.1em;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.section-badge { background: var(--gold-light); color: var(--gold); border: 1px solid var(--gold-border); font-size: 10px; padding: 1px 7px; border-radius: 2px; letter-spacing: 0.04em; }
+
+/* NAV BANNER */
+#nav-banner {
+  background: var(--gold-light);
+  border-bottom: 1px solid var(--gold-border);
+  padding: 10px 14px;
+  display: none;
+}
+.nav-banner-title { font-size: 11px; font-weight: 500; color: var(--gold); margin-bottom: 8px; }
+.nav-row { display: flex; align-items: center; gap: 7px; margin-bottom: 5px; }
+.nav-fund-name { font-size: 11px; color: var(--ink-mid); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nav-input {
+  width: 78px; background: white;
+  border: 1px solid var(--gold-border);
+  color: var(--ink); font-family: 'DM Mono', monospace;
+  font-size: 11px; border-radius: 2px; padding: 4px 7px;
+  outline: none;
+}
+.nav-input:focus { border-color: var(--gold); }
+.nav-confirm-btn {
+  width: 100%; margin-top: 8px;
+  background: var(--gold); color: white; border: none;
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 11px; padding: 7px; border-radius: 2px;
+  cursor: pointer; letter-spacing: 0.04em; transition: opacity 0.15s;
+}
+.nav-confirm-btn:hover { opacity: 0.9; }
+
+#holdings-list { flex: 1; overflow-y: auto; padding: 10px; }
+#holdings-list::-webkit-scrollbar { width: 3px; }
+#holdings-list::-webkit-scrollbar-thumb { background: var(--border-dark); }
+
+.holding-card {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 3px; padding: 11px 13px; margin-bottom: 7px;
+  transition: border-color 0.15s;
+}
+.holding-card:hover { border-color: var(--border-dark); }
+.holding-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px; }
+.holding-name { font-size: 13px; font-weight: 500; color: var(--ink); line-height: 1.3; }
+.holding-code { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--ink-muted); }
+.holding-pnl { font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 500; }
+.pnl-pos { color: var(--red); }
+.pnl-neg { color: var(--green); }
+.pnl-zero { color: var(--ink-dim); }
+.holding-meta { display: flex; gap: 10px; flex-wrap: wrap; }
+.meta-item { display: flex; flex-direction: column; gap: 1px; }
+.meta-label { font-size: 10px; color: var(--ink-muted); }
+.meta-value { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--ink-mid); }
+.card-actions { display: flex; gap: 1px; flex-shrink: 0; }
+.card-btn { background: none; border: none; color: var(--ink-muted); font-size: 12px; cursor: pointer; padding: 2px 5px; border-radius: 2px; transition: color 0.1s; }
+.card-btn:hover { color: var(--ink-mid); }
+
+.empty-holdings { padding: 28px 16px; text-align: center; color: var(--ink-muted); font-size: 12px; line-height: 1.8; }
+
+.bottom-btns { padding: 10px; display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--border); flex-shrink: 0; }
+.add-holding-btn {
+  padding: 9px; background: none;
+  border: 1px dashed var(--border-dark); border-radius: 3px;
+  color: var(--ink-dim); font-size: 12px; cursor: pointer;
+  font-family: 'Noto Sans SC', sans-serif; letter-spacing: 0.03em; transition: all 0.15s;
+}
+.add-holding-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--gold-light); }
+.update-nav-btn {
+  padding: 9px; background: none;
+  border: 1px solid var(--gold-border); border-radius: 3px;
+  color: var(--gold); font-size: 12px; cursor: pointer;
+  font-family: 'Noto Sans SC', sans-serif; letter-spacing: 0.03em;
+  transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 5px;
+}
+.update-nav-btn:hover { background: var(--gold-light); }
+
+/* CENTER CHAT */
+#chat-panel { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+#messages { flex: 1; overflow-y: auto; padding: 28px 32px; display: flex; flex-direction: column; gap: 20px; }
+#messages::-webkit-scrollbar { width: 3px; }
+#messages::-webkit-scrollbar-thumb { background: var(--border-dark); }
+
+.welcome-msg { max-width: 640px; margin: 0 auto; text-align: center; padding: 40px 0 20px; }
+.welcome-icon { font-size: 32px; margin-bottom: 16px; opacity: 0.6; }
+.welcome-title { font-family: 'Noto Serif SC', serif; font-size: 20px; font-weight: 600; color: var(--ink); margin-bottom: 8px; letter-spacing: 0.03em; }
+.welcome-desc { font-size: 13px; color: var(--ink-dim); line-height: 1.8; margin-bottom: 24px; }
+.quick-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.quick-btn { background: var(--surface); border: 1px solid var(--border); color: var(--ink-mid); font-size: 12px; padding: 7px 14px; border-radius: 2px; cursor: pointer; font-family: 'Noto Sans SC', sans-serif; transition: all 0.15s; letter-spacing: 0.02em; }
+.quick-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--gold-light); }
+
+.message { display: flex; gap: 14px; max-width: 800px; animation: fadeIn 0.2s ease; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+.message.user { flex-direction: row-reverse; margin-left: auto; }
+.message.assistant { margin-right: auto; }
+.msg-avatar { width: 30px; height: 30px; border-radius: 2px; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; margin-top: 2px; }
+.message.user .msg-avatar { background: var(--surface2); border: 1px solid var(--border); color: var(--ink-dim); font-family: 'Noto Serif SC', serif; font-weight: 600; }
+.message.assistant .msg-avatar { background: var(--ink); color: var(--bg); }
+.msg-body { flex: 1; min-width: 0; }
+.msg-bubble { padding: 14px 18px; border-radius: 3px; font-size: 14px; line-height: 1.8; }
+.message.user .msg-bubble { background: var(--surface); border: 1px solid var(--border); color: var(--ink); border-top-right-radius: 0; }
+.message.assistant .msg-bubble { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--ink); border-top-left-radius: 0; color: var(--ink); }
+.msg-bubble h3 { font-family: 'Noto Serif SC', serif; font-size: 13px; font-weight: 600; color: var(--ink); margin: 16px 0 8px; padding-bottom: 5px; border-bottom: 1px solid var(--border); letter-spacing: 0.03em; }
+.msg-bubble h3:first-child { margin-top: 0; }
+.msg-bubble p { margin-bottom: 8px; color: var(--ink-mid); }
+.msg-bubble p:last-child { margin-bottom: 0; }
+.msg-bubble strong { color: var(--ink); font-weight: 500; }
+.msg-bubble ul { padding-left: 18px; margin-bottom: 8px; }
+.msg-bubble li { color: var(--ink-mid); margin-bottom: 4px; font-size: 13px; }
+.tag { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 2px; font-weight: 500; letter-spacing: 0.04em; margin: 1px; }
+.tag-hold { background: var(--blue-light); color: var(--blue); border: 1px solid #c0d0e8; }
+.tag-buy  { background: var(--red-light); color: var(--red); border: 1px solid var(--red-border); }
+.tag-sell { background: var(--green-light); color: var(--green); border: 1px solid var(--green-border); }
+.tag-watch{ background: var(--gold-light); color: var(--gold); border: 1px solid var(--gold-border); }
+.tag-no   { background: var(--surface2); color: var(--ink-dim); border: 1px solid var(--border); }
+.conclusion-box { background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 2px; font-size: 13px; margin-top: 12px; font-family: 'Noto Serif SC', serif; letter-spacing: 0.02em; line-height: 1.7; }
+.msg-time { font-size: 10px; color: var(--ink-muted); font-family: 'DM Mono', monospace; margin-top: 5px; letter-spacing: 0.03em; }
+.message.user .msg-time { text-align: right; }
+
+.typing-wrap { display: flex; gap: 14px; animation: fadeIn 0.2s ease; }
+.typing-bubble { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--ink); padding: 14px 18px; border-radius: 3px; border-top-left-radius: 0; display: flex; align-items: center; gap: 5px; }
+.typing-bubble span { width: 5px; height: 5px; border-radius: 50%; background: var(--ink-dim); animation: tdot 1.2s infinite; }
+.typing-bubble span:nth-child(2) { animation-delay: 0.2s; }
+.typing-bubble span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes tdot { 0%,60%,100%{transform:none;opacity:0.3} 30%{transform:translateY(-4px);opacity:1} }
+
+#input-area { border-top: 1px solid var(--border); background: var(--surface); padding: 16px 24px 18px; }
+.input-wrap { display: flex; gap: 10px; align-items: flex-end; max-width: 800px; margin: 0 auto; }
+#user-input { flex: 1; background: var(--bg); border: 1px solid var(--border); color: var(--ink); font-family: 'Noto Sans SC', sans-serif; font-size: 14px; border-radius: 3px; padding: 11px 16px; outline: none; resize: none; max-height: 120px; line-height: 1.6; transition: border-color 0.15s; }
+#user-input:focus { border-color: var(--border-dark); }
+#user-input::placeholder { color: var(--ink-muted); }
+#send-btn { height: 44px; padding: 0 20px; background: var(--ink); color: var(--bg); border: none; border-radius: 3px; font-family: 'Noto Sans SC', sans-serif; font-size: 12px; letter-spacing: 0.06em; cursor: pointer; transition: opacity 0.15s; flex-shrink: 0; }
+#send-btn:hover { opacity: 0.85; }
+#send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.input-hint { font-size: 10px; color: var(--ink-muted); text-align: center; margin-top: 7px; letter-spacing: 0.04em; }
+
+/* RIGHT SIDEBAR */
+#info-panel { width: 200px; min-width: 200px; background: var(--surface); border-left: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; padding: 16px; gap: 14px; }
+#info-panel::-webkit-scrollbar { width: 3px; }
+.info-title { font-size: 10px; font-weight: 500; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; padding-bottom: 5px; border-bottom: 1px solid var(--border); }
+.info-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.info-key { color: var(--ink-dim); font-size: 11px; }
+.info-val { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--ink-mid); }
+.portfolio-summary { background: var(--bg); border: 1px solid var(--border); border-radius: 2px; padding: 10px 12px; }
+.summary-label { font-size: 10px; color: var(--ink-muted); margin-bottom: 2px; }
+.summary-val { font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 500; color: var(--ink); }
+.summary-sub { font-size: 10px; color: var(--ink-dim); }
+.divider-line { height: 1px; background: var(--border); }
+.tip-box { background: var(--gold-light); border: 1px solid var(--gold-border); border-radius: 2px; padding: 10px 12px; font-size: 11px; color: var(--gold); line-height: 1.7; }
+
+/* MODAL */
+#modal-overlay { display: none; position: fixed; inset: 0; background: rgba(26,22,16,0.5); z-index: 100; align-items: center; justify-content: center; }
+#modal-overlay.active { display: flex; }
+#modal { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; width: 460px; max-height: 85vh; overflow-y: auto; box-shadow: var(--shadow); }
+.modal-header { padding: 18px 22px 14px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.modal-title { font-family: 'Noto Serif SC', serif; font-size: 15px; font-weight: 600; color: var(--ink); letter-spacing: 0.03em; }
+.modal-close { background: none; border: none; font-size: 18px; color: var(--ink-dim); cursor: pointer; line-height: 1; }
+.modal-body { padding: 18px 22px; }
+.form-row { margin-bottom: 14px; }
+.form-label { font-size: 11px; color: var(--ink-dim); letter-spacing: 0.06em; margin-bottom: 5px; display: block; text-transform: uppercase; }
+.form-input { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--ink); font-family: 'Noto Sans SC', sans-serif; font-size: 13px; border-radius: 2px; padding: 8px 11px; outline: none; transition: border-color 0.15s; }
+.form-input:focus { border-color: var(--border-dark); }
+.form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.modal-footer { padding: 14px 22px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
+.btn-cancel { background: none; border: 1px solid var(--border); color: var(--ink-dim); font-family: 'Noto Sans SC', sans-serif; font-size: 12px; padding: 7px 16px; border-radius: 2px; cursor: pointer; }
+.btn-confirm { background: var(--ink); border: none; color: var(--bg); font-family: 'Noto Sans SC', sans-serif; font-size: 12px; padding: 7px 16px; border-radius: 2px; cursor: pointer; }
+.form-hint { font-size: 11px; color: var(--ink-muted); margin-top: 6px; line-height: 1.6; }
+
+/* Shortcut bar */
+#shortcut-bar {
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  padding: 8px 16px 6px;
+  overflow-x: auto;
+  flex-shrink: 0;
+}
+#shortcut-bar::-webkit-scrollbar { height: 3px; }
+#shortcut-bar::-webkit-scrollbar-thumb { background: var(--border-dark); }
+
+.shortcut-group {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 5px;
+  flex-wrap: nowrap;
+}
+.shortcut-group-label {
+  font-size: 9px;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  min-width: 28px;
+}
+.sc-btn {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--ink-mid);
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 2px;
+  cursor: pointer;
+  font-family: 'Noto Sans SC', sans-serif;
+  white-space: nowrap;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.sc-btn:hover {
+  border-color: var(--border-dark);
+  background: var(--surface2);
+  color: var(--ink);
+}
+.sc-btn.op  { border-color: #d4c4b8; }
+.sc-btn.rv  { border-color: #b8ccd8; }
+.sc-btn.ev  { border-color: #c8d4b8; }
+.sc-btn.re  { border-color: #d4b8c8; }
+
+
+.io-btns { display: flex; gap: 6px; }
+.export-btn {
+  flex: 1; padding: 8px; background: none;
+  border: 1px solid var(--border); border-radius: 3px;
+  color: var(--ink-dim); font-size: 11px; cursor: pointer;
+  font-family: 'Noto Sans SC', sans-serif; letter-spacing: 0.03em;
+  transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 4px;
+}
+.export-btn:hover { border-color: var(--border-dark); color: var(--ink-mid); background: var(--surface2); }
+.import-btn {
+  flex: 1; padding: 8px; background: none;
+  border: 1px solid var(--border); border-radius: 3px;
+  color: var(--ink-dim); font-size: 11px; cursor: pointer;
+  font-family: 'Noto Sans SC', sans-serif; letter-spacing: 0.03em;
+  transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 4px;
+}
+.import-btn:hover { border-color: var(--border-dark); color: var(--ink-mid); background: var(--surface2); }
+
+/* Import modal */
+#import-overlay { display: none; position: fixed; inset: 0; background: rgba(26,22,16,0.5); z-index: 200; align-items: center; justify-content: center; }
+#import-overlay.active { display: flex; }
+#import-modal { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; width: 480px; box-shadow: var(--shadow); }
+.import-header { padding: 18px 22px 14px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.import-title { font-family: 'Noto Serif SC', serif; font-size: 15px; font-weight: 600; color: var(--ink); }
+.import-body { padding: 18px 22px; }
+.import-textarea {
+  width: 100%; height: 160px; background: var(--bg);
+  border: 1px solid var(--border); color: var(--ink);
+  font-family: 'DM Mono', monospace; font-size: 12px;
+  border-radius: 2px; padding: 10px 12px; outline: none;
+  resize: none; line-height: 1.6;
+}
+.import-textarea:focus { border-color: var(--border-dark); }
+.import-hint { font-size: 11px; color: var(--ink-muted); margin-top: 8px; line-height: 1.6; }
+.import-footer { padding: 14px 22px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
+
+/* Weighted avg calculator */
+.calc-toggle {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; color: var(--gold); cursor: pointer;
+  background: none; border: none; font-family: 'Noto Sans SC', sans-serif;
+  padding: 0; margin-top: 4px; text-decoration: underline; text-underline-offset: 2px;
+}
+#calc-panel {
+  display: none;
+  background: var(--gold-light);
+  border: 1px solid var(--gold-border);
+  border-radius: 3px;
+  padding: 12px 14px;
+  margin-top: 10px;
+}
+#calc-panel.open { display: block; }
+.calc-title { font-size: 11px; font-weight: 500; color: var(--gold); margin-bottom: 8px; }
+.calc-header-row {
+  display: grid; grid-template-columns: 90px 1fr 1fr 28px;
+  gap: 6px; margin-bottom: 5px;
+  font-size: 10px; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.06em;
+}
+.calc-row {
+  display: grid; grid-template-columns: 90px 1fr 1fr 28px;
+  gap: 6px; margin-bottom: 5px; align-items: center;
+}
+.calc-input {
+  background: white; border: 1px solid var(--gold-border);
+  color: var(--ink); font-family: 'DM Mono', monospace;
+  font-size: 12px; border-radius: 2px; padding: 5px 8px;
+  outline: none; width: 100%;
+}
+.calc-input:focus { border-color: var(--gold); }
+.calc-date-input {
+  background: white; border: 1px solid var(--gold-border);
+  color: var(--ink); font-family: 'Noto Sans SC', sans-serif;
+  font-size: 11px; border-radius: 2px; padding: 5px 6px;
+  outline: none; width: 100%;
+}
+.calc-rm-btn {
+  background: none; border: none; color: var(--ink-muted);
+  font-size: 14px; cursor: pointer; padding: 0; line-height: 1;
+  transition: color 0.1s;
+}
+.calc-rm-btn:hover { color: var(--red); }
+.calc-add-btn {
+  background: none; border: 1px dashed var(--gold-border);
+  color: var(--gold); font-size: 11px; cursor: pointer;
+  font-family: 'Noto Sans SC', sans-serif;
+  padding: 5px; border-radius: 2px; width: 100%;
+  margin-top: 4px; transition: background 0.15s;
+}
+.calc-add-btn:hover { background: rgba(160,120,40,0.08); }
+.calc-result {
+  display: none;
+  background: white; border: 1px solid var(--gold-border);
+  border-radius: 2px; padding: 10px 12px; margin-top: 8px;
+}
+.calc-result.show { display: block; }
+.calc-result-row { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 12px; }
+.calc-result-row:last-child { margin-bottom: 0; }
+.calc-result-key { color: var(--ink-dim); }
+.calc-result-val { font-family: 'DM Mono', monospace; color: var(--ink); font-weight: 500; }
+.calc-apply-btn {
+  width: 100%; margin-top: 8px;
+  background: var(--gold); color: white; border: none;
+  font-family: 'Noto Sans SC', sans-serif; font-size: 11px;
+  padding: 7px; border-radius: 2px; cursor: pointer;
+  letter-spacing: 0.04em; transition: opacity 0.15s;
+}
+.calc-apply-btn:hover { opacity: 0.9; }
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div class="brand">
+    <span class="brand-name">收盘前操作助手</span>
+    <span class="brand-tag">· 基金仓位管理</span>
+  </div>
+  <div class="time-display">
+    <span class="clock" id="clock">--:--:--</span>
+    <div class="market-status" id="market-status">
+      <div class="status-dot"></div>
+      <span id="status-text">检测中</span>
+    </div>
+  </div>
+</div>
+
+<div id="main">
+
+  <!-- LEFT -->
+  <div id="holding-panel">
+    <div class="panel-section-title">
+      当前持仓
+      <span class="section-badge" id="holding-count">0 只</span>
+    </div>
+
+    <div id="nav-banner">
+      <div class="nav-banner-title">📥 输入今日最新净值，自动计算盈亏</div>
+      <div id="nav-inputs"></div>
+      <button class="nav-confirm-btn" onclick="confirmNavUpdate()">✓ 确认更新</button>
+    </div>
+
+    <div id="holdings-list">
+      <div class="empty-holdings">暂无持仓<br>点击下方添加基金</div>
+    </div>
+
+    <div class="bottom-btns">
+      <button class="update-nav-btn" onclick="toggleNavBanner()" id="nav-btn">
+        📊 今日净值更新
+      </button>
+      <button class="add-holding-btn" onclick="openModal(-1)">＋ 添加持仓</button>
+      <div class="io-btns">
+        <button class="export-btn" onclick="exportData()">⬆ 导出数据</button>
+        <button class="import-btn" onclick="openImport()">⬇ 导入数据</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER -->
+  <div id="chat-panel">
+    <div id="messages">
+      <div class="welcome-msg" id="welcome">
+        <div class="welcome-icon">📊</div>
+        <div class="welcome-title">收盘前基金操作助手</div>
+        <div class="welcome-desc">
+          每天下午 2:30，结合当天市场情况<br>
+          给出明确、可执行的持仓操作建议
+        </div>
+        <div class="quick-actions">
+          <button class="quick-btn" onclick="quickSend('请根据今天的市场情况，给出我的持仓操作建议')">📈 今日操作建议</button>
+          <button class="quick-btn" onclick="quickSend('今天市场整体怎么样？适合进攻还是防守？')">🧭 今日市场判断</button>
+          <button class="quick-btn" onclick="quickSend('帮我整理当前持仓结构，看看集中度和同质化风险')">🔍 持仓诊断</button>
+          <button class="quick-btn" onclick="quickSend('今天不打算操作，请告诉我需要重点关注哪些风险')">⚠️ 风险扫描</button>
+        </div>
+      </div>
+    </div>
+    <div id="shortcut-bar">
+      <div class="shortcut-group">
+        <span class="shortcut-group-label">操作</span>
+        <button class="sc-btn op" onclick="quickSend('请根据今天的市场情况，给出我的持仓操作建议')">📈 今日操作建议</button>
+        <button class="sc-btn op" onclick="quickSend('今天是否适合加仓？哪只基金最值得加？')">➕ 今日是否加仓</button>
+        <button class="sc-btn op" onclick="quickSend('我的持仓中，哪只基金现在可以考虑减仓？理由是什么？')">➖ 哪只可以减仓</button>
+        <button class="sc-btn op" onclick="quickSend('今天不操作的理由是什么？帮我分析一下忍住不动的逻辑')">🧘 今天不操作的理由</button>
+      </div>
+      <div class="shortcut-group">
+        <span class="shortcut-group-label">市场</span>
+        <button class="sc-btn rv" onclick="quickSend('今天市场整体怎么样？适合进攻还是防守？')">🧭 今日市场判断</button>
+        <button class="sc-btn rv" onclick="quickSend('大盘今天大跌，我该怎么办？是否需要操作持仓？')">📉 大盘大跌怎么办</button>
+        <button class="sc-btn rv" onclick="quickSend('我现在有闲置资金，今天适合加仓吗？加哪个方向？')">💰 闲置资金是否加仓</button>
+      </div>
+      <div class="shortcut-group">
+        <span class="shortcut-group-label">诊断</span>
+        <button class="sc-btn ev" onclick="quickSend('帮我整理当前持仓结构，看看集中度和同质化风险')">🔍 持仓诊断</button>
+        <button class="sc-btn ev" onclick="quickSend('我的持仓结构是否过于集中？有哪些分散化的建议？')">⚖️ 持仓是否集中</button>
+        <button class="sc-btn ev" onclick="quickSend('今天不打算操作，请告诉我需要重点关注哪些风险')">⚠️ 风险扫描</button>
+      </div>
+      <div class="shortcut-group">
+        <span class="shortcut-group-label">复盘</span>
+        <button class="sc-btn re" onclick="quickSend('帮我复盘一下本周持仓的整体表现，哪些做对了，哪些需要反思？')">📋 本周持仓复盘</button>
+      </div>
+    </div>
+    <div id="input-area">
+      <div class="input-wrap">
+        <textarea id="user-input" rows="1" placeholder="输入问题，或点击上方快捷按钮…"
+          onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button id="send-btn" onclick="sendMessage()">发 送</button>
+      </div>
+      <div class="input-hint">Enter 发送 · Shift+Enter 换行</div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div id="info-panel">
+    <div>
+      <div class="info-title">组合概览</div>
+      <div class="portfolio-summary">
+        <div class="summary-label">持仓基金</div>
+        <div class="summary-val" id="total-funds">0</div>
+        <div class="summary-sub">只</div>
+      </div>
+    </div>
+    <div class="divider-line"></div>
+    <div>
+      <div class="info-title">交易参考</div>
+      <div class="info-row"><span class="info-key">今日</span><span class="info-val" id="today-date">--</span></div>
+      <div class="info-row"><span class="info-key">截止</span><span class="info-val">14:57</span></div>
+      <div class="info-row"><span class="info-key">结算</span><span class="info-val">T+1</span></div>
+      <div class="info-row"><span class="info-key">净值更新</span><span class="info-val" id="last-nav-date" style="color:var(--gold);">--</span></div>
+    </div>
+    <div class="divider-line"></div>
+    <div class="tip-box">💡 建议在 14:00–14:45 咨询，信息最完整，操作空间充裕。</div>
+    <div class="divider-line"></div>
+    <div>
+      <div class="info-title">使用步骤</div>
+      <div style="font-size:11px;color:var(--ink-dim);line-height:1.9;">
+        <div>① 添加持仓（一次录入）</div>
+        <div>② 每天点「今日净值更新」</div>
+        <div>③ 输入各基金今日净值</div>
+        <div>④ 盈亏自动计算</div>
+        <div>⑤ 发送「今日操作建议」</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL -->
+<div id="modal-overlay">
+  <div id="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title">添加持仓</span>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <label class="form-label">基金名称 *</label>
+        <input class="form-input" id="f-name" placeholder="例：富国天惠成长混合">
+      </div>
+      <div class="form-row-2">
+        <div>
+          <label class="form-label">基金代码</label>
+          <input class="form-input" id="f-code" placeholder="例：161005">
+        </div>
+        <div>
+          <label class="form-label">持仓金额（元）</label>
+          <input class="form-input" id="f-amount" type="number" placeholder="例：50000">
+        </div>
+      </div>
+      <div class="form-row-2">
+        <div>
+          <label class="form-label">成本净值 *</label>
+          <input class="form-input" id="f-cost" type="number" step="0.0001" placeholder="买入时的净值">
+        </div>
+        <div>
+          <label class="form-label">当前净值</label>
+          <input class="form-input" id="f-nav" type="number" step="0.0001" placeholder="最新净值（选填）">
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">买入时间</label>
+        <input class="form-input" id="f-date" type="date">
+      </div>
+      <div class="form-row">
+        <label class="form-label">买入逻辑（可选）</label>
+        <textarea class="form-input" id="f-logic" rows="2" placeholder="例：看好科技板块政策支持，中期配置…" style="resize:none;"></textarea>
+      </div>
+      <div class="form-hint">💡 成本净值 = 加权平均买入净值。当前净值可不填，之后用「今日净值更新」输入。</div>
+      <button class="calc-toggle" onclick="toggleCalc()">🧮 多次买入？点此自动计算加权均价</button>
+      <div id="calc-panel">
+        <div class="calc-title">加权平均成本计算器</div>
+        <div class="calc-header-row">
+          <div>买入日期</div><div>金额（元）</div><div>当时净值</div><div></div>
+        </div>
+        <div id="calc-rows"></div>
+        <button class="calc-add-btn" onclick="addCalcRow()">＋ 添加一笔</button>
+        <div class="calc-result" id="calc-result">
+          <div class="calc-result-row"><span class="calc-result-key">总买入金额</span><span class="calc-result-val" id="res-amount">--</span></div>
+          <div class="calc-result-row"><span class="calc-result-key">加权平均净值</span><span class="calc-result-val" id="res-cost">--</span></div>
+          <div class="calc-result-row"><span class="calc-result-key">首次买入日期</span><span class="calc-result-val" id="res-date">--</span></div>
+          <button class="calc-apply-btn" onclick="applyCalcResult()">↑ 填入上方表单</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">取消</button>
+      <button class="btn-confirm" onclick="saveHoldingFromModal()">确认保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div id="import-overlay">
+  <div id="import-modal">
+    <div class="import-header">
+      <span class="import-title">导入持仓数据</span>
+      <button class="modal-close" onclick="closeImport()">×</button>
+    </div>
+    <div class="import-body">
+      <textarea class="import-textarea" id="import-text" placeholder="粘贴之前导出的 JSON 数据…"></textarea>
+      <div class="import-hint">⚠️ 导入会覆盖当前所有持仓数据，请确认已导出备份。</div>
+    </div>
+    <div class="import-footer">
+      <button class="btn-cancel" onclick="closeImport()">取消</button>
+      <button class="btn-confirm" onclick="confirmImport()">确认导入</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Storage Keys ──
+const STORAGE_KEY = 'fund_holdings_v3';
+const NAV_DATE_KEY = 'fund_nav_date_v3';
+
+// ── State ──
+let holdings = [];
+let chatHistory = [];
+let editingIndex = -1;
+let navBannerOpen = false;
+
+// ── Persistence ──
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(holdings)); } catch(e) {}
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) holdings = JSON.parse(raw);
+  } catch(e) { holdings = []; }
+}
+
+function saveNavDate(d) {
+  try { localStorage.setItem(NAV_DATE_KEY, d); } catch(e) {}
+}
+
+function getNavDate() {
+  try { return localStorage.getItem(NAV_DATE_KEY) || '--'; } catch(e) { return '--'; }
+}
+
+// ── Clock ──
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleTimeString('zh-CN', {hour12:false});
+  document.getElementById('today-date').textContent =
+    (now.getMonth()+1).toString().padStart(2,'0') + '-' + now.getDate().toString().padStart(2,'0');
+
+  const h = now.getHours(), m = now.getMinutes();
+  const wd = now.getDay();
+  const isWeekday = wd >= 1 && wd <= 5;
+  const isOpen = isWeekday && (
+    (h===9 && m>=30) || (h>=10 && h<=10) || (h===11 && m<=30) ||
+    h===13 || (h===14 && m<57)
+  );
+
+  const sEl = document.getElementById('market-status');
+  const tEl = document.getElementById('status-text');
+  if (isOpen) {
+    sEl.className = 'market-status open';
+    tEl.textContent = (h===14 && m>=30) ? '接近收盘' : '交易中';
+  } else {
+    sEl.className = 'market-status closed';
+    tEl.textContent = isWeekday ? '已收盘' : '休市';
+  }
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ── NAV Banner ──
+function toggleNavBanner() {
+  navBannerOpen = !navBannerOpen;
+  const banner = document.getElementById('nav-banner');
+  const btn = document.getElementById('nav-btn');
+  if (navBannerOpen) {
+    if (!holdings.length) { alert('请先添加持仓'); navBannerOpen=false; return; }
+    buildNavInputs();
+    banner.style.display = 'block';
+    btn.textContent = '✕ 关闭';
+  } else {
+    banner.style.display = 'none';
+    btn.textContent = '📊 今日净值更新';
+  }
+}
+
+function buildNavInputs() {
+  document.getElementById('nav-inputs').innerHTML = holdings.map((h, i) => `
+    <div class="nav-row">
+      <div class="nav-fund-name" title="${h.name}">${h.name}</div>
+      <input class="nav-input" id="nv${i}" type="number" step="0.0001"
+        value="${h.currentNav || ''}"
+        placeholder="${h.currentNav || h.cost || '净值'}">
+    </div>
+  `).join('');
+}
+
+function confirmNavUpdate() {
+  let count = 0;
+  holdings.forEach((h, i) => {
+    const v = parseFloat(document.getElementById('nv'+i)?.value);
+    if (v > 0) {
+      h.currentNav = v.toFixed(4);
+      if (h.cost && parseFloat(h.cost) > 0) {
+        h.pnl = (((v - parseFloat(h.cost)) / parseFloat(h.cost)) * 100).toFixed(2);
+      }
+      count++;
+    }
+  });
+  if (!count) { alert('请至少输入一只基金的净值'); return; }
+  save();
+  const today = document.getElementById('today-date').textContent;
+  saveNavDate(today);
+  document.getElementById('last-nav-date').textContent = today;
+  renderHoldings();
+  toggleNavBanner();
+  sysNote(`✅ 已更新 ${count} 只基金净值，盈亏已重新计算`);
+}
+
+// ── Modal ──
+function openModal(idx) {
+  editingIndex = idx;
+  document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+  if (idx >= 0 && idx < holdings.length) {
+    const h = holdings[idx];
+    document.getElementById('f-name').value = h.name || '';
+    document.getElementById('f-code').value = h.code || '';
+    document.getElementById('f-amount').value = h.amount || '';
+    document.getElementById('f-cost').value = h.cost || '';
+    document.getElementById('f-nav').value = h.currentNav || '';
+    document.getElementById('f-date').value = h.date || new Date().toISOString().split('T')[0];
+    document.getElementById('f-logic').value = h.logic || '';
+    document.getElementById('modal-title').textContent = '编辑持仓';
+  } else {
+    ['f-name','f-code','f-amount','f-cost','f-nav','f-logic'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('modal-title').textContent = '添加持仓';
+  }
+  document.getElementById('modal-overlay').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('active');
+  editingIndex = -1;
+  document.getElementById('calc-panel').classList.remove('open');
+  document.getElementById('calc-rows').innerHTML = '';
+  document.getElementById('calc-result').classList.remove('show');
+}
+
+// ── Weighted avg calculator ──
+let calcRowCount = 0;
+
+function toggleCalc() {
+  const panel = document.getElementById('calc-panel');
+  const isOpen = panel.classList.toggle('open');
+  if (isOpen && document.getElementById('calc-rows').children.length === 0) {
+    addCalcRow(); addCalcRow(); addCalcRow();
+  }
+}
+
+function addCalcRow() {
+  const id = calcRowCount++;
+  const today = new Date().toISOString().split('T')[0];
+  const row = document.createElement('div');
+  row.className = 'calc-row';
+  row.id = 'cr' + id;
+  row.innerHTML = `
+    <input class="calc-date-input" id="cd${id}" type="date" value="${today}" oninput="recalc()">
+    <input class="calc-input" id="ca${id}" type="number" placeholder="10000" step="100" oninput="recalc()">
+    <input class="calc-input" id="cn${id}" type="number" placeholder="1.2580" step="0.0001" oninput="recalc()">
+    <button class="calc-rm-btn" onclick="removeCalcRow(${id})">×</button>
+  `;
+  document.getElementById('calc-rows').appendChild(row);
+}
+
+function removeCalcRow(id) {
+  document.getElementById('cr' + id)?.remove();
+  recalc();
+}
+
+function recalc() {
+  const rows = document.getElementById('calc-rows').querySelectorAll('.calc-row');
+  let totalAmount = 0, totalShares = 0, firstDate = null;
+  let valid = 0;
+  rows.forEach(row => {
+    const idNum = row.id.slice(2);
+    const amount = parseFloat(document.getElementById('ca'+idNum)?.value);
+    const nav = parseFloat(document.getElementById('cn'+idNum)?.value);
+    const date = document.getElementById('cd'+idNum)?.value;
+    if (amount > 0 && nav > 0) {
+      totalAmount += amount;
+      totalShares += amount / nav;
+      valid++;
+      if (date && (!firstDate || date < firstDate)) firstDate = date;
+    }
+  });
+  const resultEl = document.getElementById('calc-result');
+  if (valid < 1) { resultEl.classList.remove('show'); return; }
+  const avgCost = totalAmount / totalShares;
+  document.getElementById('res-amount').textContent = '¥' + totalAmount.toLocaleString('zh-CN', {minimumFractionDigits:2, maximumFractionDigits:2});
+  document.getElementById('res-cost').textContent = avgCost.toFixed(4);
+  document.getElementById('res-date').textContent = firstDate || '--';
+  resultEl.classList.add('show');
+}
+
+function applyCalcResult() {
+  const amountRaw = document.getElementById('res-amount').textContent.replace('¥','').replace(/,/g,'');
+  const cost = document.getElementById('res-cost').textContent;
+  const date = document.getElementById('res-date').textContent;
+  if (amountRaw && parseFloat(amountRaw) > 0) document.getElementById('f-amount').value = Math.round(parseFloat(amountRaw));
+  if (cost && parseFloat(cost) > 0) document.getElementById('f-cost').value = cost;
+  if (date && date !== '--') document.getElementById('f-date').value = date;
+  document.getElementById('calc-panel').classList.remove('open');
+}
+
+function saveHoldingFromModal() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { alert('请填写基金名称'); return; }
+  const cost = document.getElementById('f-cost').value;
+  const nav = document.getElementById('f-nav').value;
+  let pnl = '';
+  if (cost && nav && parseFloat(cost) > 0 && parseFloat(nav) > 0) {
+    pnl = (((parseFloat(nav) - parseFloat(cost)) / parseFloat(cost)) * 100).toFixed(2);
+  }
+  const h = {
+    name,
+    code: document.getElementById('f-code').value.trim(),
+    amount: document.getElementById('f-amount').value,
+    cost,
+    currentNav: nav || cost,
+    pnl,
+    date: document.getElementById('f-date').value,
+    logic: document.getElementById('f-logic').value.trim()
+  };
+  if (editingIndex >= 0 && editingIndex < holdings.length) {
+    holdings[editingIndex] = h;
+  } else {
+    holdings.push(h);
+  }
+  save();
+  renderHoldings();
+  closeModal();
+}
+
+function removeHolding(i) {
+  if (confirm(`删除「${holdings[i].name}」？`)) {
+    holdings.splice(i, 1);
+    save();
+    renderHoldings();
+  }
+}
+
+// ── Render Holdings ──
+function renderHoldings() {
+  const list = document.getElementById('holdings-list');
+  document.getElementById('holding-count').textContent = holdings.length + ' 只';
+  document.getElementById('total-funds').textContent = holdings.length;
+  if (!holdings.length) {
+    list.innerHTML = '<div class="empty-holdings">暂无持仓<br>点击下方添加基金</div>';
+    return;
+  }
+  list.innerHTML = holdings.map((h, i) => {
+    const pnl = parseFloat(h.pnl);
+    let pnlHtml = '';
+    if (!isNaN(pnl)) {
+      const cls = pnl > 0 ? 'pnl-pos' : pnl < 0 ? 'pnl-neg' : 'pnl-zero';
+      pnlHtml = `<span class="holding-pnl ${cls}">${pnl > 0 ? '+' : ''}${pnl.toFixed(2)}%</span>`;
+    }
+    return `<div class="holding-card">
+      <div class="holding-header">
+        <div style="flex:1;min-width:0;">
+          <div class="holding-name">${h.name}</div>
+          ${h.code ? `<div class="holding-code">${h.code}</div>` : ''}
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
+          ${pnlHtml}
+          <div class="card-actions">
+            <button class="card-btn" onclick="openModal(${i})" title="编辑">✎</button>
+            <button class="card-btn" onclick="removeHolding(${i})" title="删除">×</button>
+          </div>
+        </div>
+      </div>
+      <div class="holding-meta">
+        ${h.amount ? `<div class="meta-item"><div class="meta-label">持仓</div><div class="meta-value">¥${Number(h.amount).toLocaleString()}</div></div>` : ''}
+        ${h.cost ? `<div class="meta-item"><div class="meta-label">成本</div><div class="meta-value">${h.cost}</div></div>` : ''}
+        ${h.currentNav ? `<div class="meta-item"><div class="meta-label">今净值</div><div class="meta-value">${h.currentNav}</div></div>` : ''}
+        ${h.date ? `<div class="meta-item"><div class="meta-label">买入</div><div class="meta-value">${h.date.slice(5)}</div></div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Chat ──
+const SYSTEM_PROMPT = `你是一名专业、克制、重视仓位节奏与风险控制的 **收盘前基金操作助手**。你的职责不是泛泛分析基金，而是基于用户已经提供的持仓信息，在每个交易日 **下午 2:30 左右**，结合当天的最新市场情况，给出 **当日收盘前的具体操作建议**。
+
+你的核心目标是：**围绕"用户今天收盘前该怎么操作当前持仓基金"提供明确、具体、可执行的建议。**
+
+用户会提供持仓信息（基金名称/代码、持仓金额、成本净值、今日最新净值、当前盈亏、买入时间、买入逻辑）。
+
+你的分析时间框架是重点看**当天截至 14:30 左右**的市场情况，目标是判断**今天收盘前**是否需要操作。
+
+每次必须结合：用户持仓本身（仓位/成本/当前净值/盈亏/集中度）、当天市场情况（A股整体强弱/指数/风格/资金面）、当天消息与政策、基金本身的逻辑是否仍成立。
+
+## 原则
+- 必须优先基于**当天最新情况**分析，不得只给方向不给具体动作
+- 不得默认"跌了就补""涨了就追"
+- 不得使用"稳赚""闭眼买""肯定涨"之类表述
+- 市场信号不清晰时，结论可以是：**今天不操作更合理**
+
+## 固定输出格式（每次必须严格遵守六段结构）
+
+### 今日总判断
+市场整体偏强/偏弱/分歧/震荡，适合进攻/防守/均衡/不动，今天收盘前是否值得操作。
+
+### 当前持仓映射
+逐只基金：名称、当前定位（持有/加仓/减仓/调仓/观察）、核心原因、今天是否建议动作。
+
+### 今日具体操作建议
+列出：继续持有哪些、适合加仓哪些、适合减仓哪些、适合调仓哪些、今天不要动哪些。
+
+### 今日仓位建议
+总仓位（提高/维持/降低）、现金是否多留、偏进攻还是偏保守。
+
+### 风险提示
+今天最大风险点、哪些方向容易冲高回落、哪些情况下今天应放弃操作。
+
+### 一句话结论
+用一句话总结今天收盘前最合理的操作思路。
+
+## 语言风格
+专业、直接、克制，像真正看仓位和节奏的顾问，不讲空话，不煽动交易。
+
+**重要：你有联网搜索能力，分析时必须先搜索当天A股市场最新行情、指数涨跌、资金流向、热点板块，再给出建议。**`;
+
+function buildHoldingCtx() {
+  if (!holdings.length) return '';
+  const today = new Date().toLocaleDateString('zh-CN');
+  const lines = holdings.map((h, i) => {
+    let s = `基金${i+1}：${h.name}`;
+    if (h.code) s += `（${h.code}）`;
+    if (h.amount) s += `，持仓金额：¥${Number(h.amount).toLocaleString()}`;
+    if (h.cost) s += `，成本净值：${h.cost}`;
+    if (h.currentNav) s += `，今日最新净值：${h.currentNav}`;
+    if (h.pnl !== undefined && h.pnl !== '') s += `，当前盈亏：${parseFloat(h.pnl)>=0?'+':''}${h.pnl}%`;
+    if (h.date) s += `，买入时间：${h.date}`;
+    if (h.logic) s += `，买入逻辑：${h.logic}`;
+    return s;
+  });
+  return `\n\n【当前持仓（截至${today}）】\n${lines.join('\n')}`;
+}
+
+async function sendMessage() {
+  const input = document.getElementById('user-input');
+  const text = input.value.trim();
+  if (!text) return;
+
+  document.getElementById('welcome')?.remove();
+  const full = text + buildHoldingCtx();
+  addMsg('user', text);
+  chatHistory.push({ role:'user', content:full });
+  input.value = '';
+  autoResize(input);
+  document.getElementById('send-btn').disabled = true;
+  const typing = showTyping();
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: SYSTEM_PROMPT,
+        tools: [{ type:'web_search_20250305', name:'web_search' }],
+        messages: chatHistory
+      })
+    });
+    const data = await res.json();
+    typing.remove();
+    const reply = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n');
+    if (reply) {
+      chatHistory.push({ role:'assistant', content:reply });
+      addMsg('assistant', reply);
+    } else {
+      addMsg('assistant', '抱歉，未能获取回复，请重试。');
+    }
+  } catch(e) {
+    typing.remove();
+    addMsg('assistant', '网络错误，请检查连接后重试。');
+  }
+  document.getElementById('send-btn').disabled = false;
+}
+
+function quickSend(t) { document.getElementById('user-input').value = t; sendMessage(); }
+
+function addMsg(role, text) {
+  const msgs = document.getElementById('messages');
+  const el = document.createElement('div');
+  el.className = `message ${role}`;
+  const av = document.createElement('div');
+  av.className = 'msg-avatar';
+  av.textContent = role==='user' ? '我' : '助';
+  const body = document.createElement('div');
+  body.className = 'msg-body';
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+  bubble.innerHTML = fmt(text);
+  const time = document.createElement('div');
+  time.className = 'msg-time';
+  time.textContent = new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+  body.appendChild(bubble);
+  body.appendChild(time);
+  el.appendChild(av);
+  el.appendChild(body);
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function sysNote(text) {
+  const msgs = document.getElementById('messages');
+  document.getElementById('welcome')?.remove();
+  const el = document.createElement('div');
+  el.style.cssText = 'text-align:center;font-size:11px;color:var(--green);font-family:DM Mono,monospace;padding:4px 0;animation:fadeIn 0.2s ease;';
+  el.textContent = text;
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function fmt(text) {
+  text = text.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+  text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  text = text.replace(/（持有）|【持有】/g, '<span class="tag tag-hold">持有</span>');
+  text = text.replace(/（加仓）|【加仓】/g, '<span class="tag tag-buy">加仓</span>');
+  text = text.replace(/（减仓）|【减仓】/g, '<span class="tag tag-sell">减仓</span>');
+  text = text.replace(/（观察）|【观察】/g, '<span class="tag tag-watch">观察</span>');
+  text = text.replace(/（调仓）|【调仓】/g, '<span class="tag tag-hold">调仓</span>');
+  text = text.replace(/（不动）|【不动】/g, '<span class="tag tag-no">不动</span>');
+  text = text.replace(/^[*\-] (.+)$/gm, '<li>$1</li>');
+  text = text.replace(/(<li>.*<\/li>\n?)+/gs, '<ul>$&</ul>');
+  text = text.replace(/<h3>一句话结论<\/h3>\n?([\s\S]*?)(?=<h3>|$)/, (_,c) =>
+    `<h3>一句话结论</h3><div class="conclusion-box">${c.trim()}</div>`);
+  text = text.split(/\n\n+/).map(p => {
+    p = p.trim();
+    if (!p||p.startsWith('<h3>')||p.startsWith('<ul>')||p.startsWith('<div')) return p;
+    return `<p>${p.replace(/\n/g,'<br>')}</p>`;
+  }).join('');
+  return text;
+}
+
+function showTyping() {
+  const msgs = document.getElementById('messages');
+  const el = document.createElement('div');
+  el.className = 'typing-wrap';
+  el.innerHTML = `<div class="msg-avatar" style="background:var(--ink);color:var(--bg);width:30px;height:30px;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;margin-top:2px;">助</div><div class="typing-bubble"><span></span><span></span><span></span></div>`;
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+  return el;
+}
+
+function handleKey(e) { if (e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();} }
+function autoResize(el) { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,120)+'px'; }
+
+
+// ── Export / Import ──
+function exportData() {
+  if (!holdings.length) { alert('暂无持仓数据可导出'); return; }
+  const payload = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    holdings
+  };
+  const json = JSON.stringify(payload, null, 2);
+  // Copy to clipboard
+  navigator.clipboard.writeText(json).then(() => {
+    sysNote('✅ 持仓数据已复制到剪贴板，粘贴保存即可');
+  }).catch(() => {
+    // Fallback: show in a prompt
+    prompt('复制以下数据并保存：', json);
+  });
+}
+
+function openImport() {
+  document.getElementById('import-text').value = '';
+  document.getElementById('import-overlay').classList.add('active');
+}
+
+function closeImport() {
+  document.getElementById('import-overlay').classList.remove('active');
+}
+
+function confirmImport() {
+  const raw = document.getElementById('import-text').value.trim();
+  if (!raw) { alert('请粘贴导出的数据'); return; }
+  try {
+    const parsed = JSON.parse(raw);
+    const data = parsed.holdings || parsed; // support both wrapped and raw array
+    if (!Array.isArray(data)) throw new Error('格式错误');
+    if (!confirm(\`即将导入 \${data.length} 只基金的持仓数据，当前数据将被覆盖，确认吗？\`)) return;
+    holdings = data;
+    save();
+    renderHoldings();
+    closeImport();
+    sysNote(\`✅ 已成功导入 \${data.length} 只基金的持仓数据\`);
+  } catch(e) {
+    alert('数据格式不正确，请确认粘贴的是完整的导出内容');
+  }
+}
+
+// ── Init ──
+load();
+renderHoldings();
+document.getElementById('last-nav-date').textContent = getNavDate();
+</script>
+</body>
+</html>
