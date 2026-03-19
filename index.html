@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>收盘前基金操作助手</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&family=Noto+Sans+SC:wght@300;400;500&display=swap');
+/* System fonts — no external dependency */
 
 :root {
   --bg: #f7f5f0;
@@ -37,7 +37,7 @@
 body {
   background: var(--bg);
   color: var(--ink);
-  font-family: 'Noto Sans SC', sans-serif;
+  font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
   height: 100vh;
   display: flex;
   flex-direction: column;
@@ -56,10 +56,10 @@ body {
   flex-shrink: 0;
 }
 .brand { display: flex; align-items: baseline; gap: 10px; }
-.brand-name { font-family: 'Noto Serif SC', serif; font-size: 16px; font-weight: 600; color: var(--ink); letter-spacing: 0.04em; }
+.brand-name { font-family: 'STSong', 'SimSun', 'PingFang SC', serif; font-size: 16px; font-weight: 600; color: var(--ink); letter-spacing: 0.04em; }
 .brand-tag { font-size: 11px; color: var(--ink-dim); font-weight: 300; letter-spacing: 0.06em; }
 .time-display { display: flex; align-items: center; gap: 16px; }
-.clock { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--ink-mid); letter-spacing: 0.05em; }
+.clock { font-family: 'SF Mono', 'Courier New', monospace; font-size: 13px; color: var(--ink-mid); letter-spacing: 0.05em; }
 .market-status { display: flex; align-items: center; gap: 5px; font-size: 11px; padding: 3px 10px; border-radius: 2px; letter-spacing: 0.04em; }
 .market-status.open { background: var(--green-light); color: var(--green); border: 1px solid var(--green-border); }
 .market-status.closed { background: var(--surface2); color: var(--ink-dim); border: 1px solid var(--border); }
@@ -78,7 +78,7 @@ body {
 }
 
 .panel-section-title {
-  font-family: 'Noto Serif SC', serif;
+  font-family: 'STSong', 'SimSun', 'PingFang SC', serif;
   font-size: 11px; font-weight: 500; color: var(--ink-dim);
   text-transform: uppercase; letter-spacing: 0.1em;
   padding: 14px 16px 10px;
@@ -100,7 +100,7 @@ body {
 .nav-input {
   width: 78px; background: white;
   border: 1px solid var(--gold-border);
-  color: var(--ink); font-family: 'DM Mono', monospace;
+  color: var(--ink); font-family: 'SF Mono', 'Courier New', monospace;
   font-size: 11px; border-radius: 2px; padding: 4px 7px;
   outline: none;
 }
@@ -108,7 +108,7 @@ body {
 .nav-confirm-btn {
   width: 100%; margin-top: 8px;
   background: var(--gold); color: white; border: none;
-  font-family: 'Noto Sans SC', sans-serif;
+  font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
   font-size: 11px; padding: 7px; border-radius: 2px;
   cursor: pointer; letter-spacing: 0.04em; transition: opacity 0.15s;
 }
@@ -126,15 +126,15 @@ body {
 .holding-card:hover { border-color: var(--border-dark); }
 .holding-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px; }
 .holding-name { font-size: 13px; font-weight: 500; color: var(--ink); line-height: 1.3; }
-.holding-code { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--ink-muted); }
-.holding-pnl { font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 500; }
+.holding-code { font-family: 'SF Mono', 'Courier New', monospace; font-size: 10px; color: var(--ink-muted); }
+.holding-pnl { font-family: 'SF Mono', 'Courier New', monospace; font-size: 12px; font-weight: 500; }
 .pnl-pos { color: var(--red); }
 .pnl-neg { color: var(--green); }
 .pnl-zero { color: var(--ink-dim); }
 .holding-meta { display: flex; gap: 10px; flex-wrap: wrap; }
 .meta-item { display: flex; flex-direction: column; gap: 1px; }
 .meta-label { font-size: 10px; color: var(--ink-muted); }
-.meta-value { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--ink-mid); }
+.meta-value { font-family: 'SF Mono', 'Courier New', monospace; font-size: 11px; color: var(--ink-mid); }
 .card-actions { display: flex; gap: 1px; flex-shrink: 0; }
 .card-btn { background: none; border: none; color: var(--ink-muted); font-size: 12px; cursor: pointer; padding: 2px 5px; border-radius: 2px; transition: color 0.1s; }
 .card-btn:hover { color: var(--ink-mid); }
@@ -146,14 +146,14 @@ body {
   padding: 9px; background: none;
   border: 1px dashed var(--border-dark); border-radius: 3px;
   color: var(--ink-dim); font-size: 12px; cursor: pointer;
-  font-family: 'Noto Sans SC', sans-serif; letter-spacing: 0.03em; transition: all 0.15s;
+  font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; letter-spacing: 0.03em; transition: all 0.15s;
 }
 .add-holding-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--gold-light); }
 .update-nav-btn {
   padding: 9px; background: none;
   border: 1px solid var(--gold-border); border-radius: 3px;
   color: var(--gold); font-size: 12px; cursor: pointer;
-  font-family: 'Noto Sans SC', sans-serif; letter-spacing: 0.03em;
+  font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; letter-spacing: 0.03em;
   transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 5px;
 }
 .update-nav-btn:hover { background: var(--gold-light); }
@@ -166,10 +166,10 @@ body {
 
 .welcome-msg { max-width: 640px; margin: 0 auto; text-align: center; padding: 40px 0 20px; }
 .welcome-icon { font-size: 32px; margin-bottom: 16px; opacity: 0.6; }
-.welcome-title { font-family: 'Noto Serif SC', serif; font-size: 20px; font-weight: 600; color: var(--ink); margin-bottom: 8px; letter-spacing: 0.03em; }
+.welcome-title { font-family: 'STSong', 'SimSun', 'PingFang SC', serif; font-size: 20px; font-weight: 600; color: var(--ink); margin-bottom: 8px; letter-spacing: 0.03em; }
 .welcome-desc { font-size: 13px; color: var(--ink-dim); line-height: 1.8; margin-bottom: 24px; }
 .quick-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
-.quick-btn { background: var(--surface); border: 1px solid var(--border); color: var(--ink-mid); font-size: 12px; padding: 7px 14px; border-radius: 2px; cursor: pointer; font-family: 'Noto Sans SC', sans-serif; transition: all 0.15s; letter-spacing: 0.02em; }
+.quick-btn { background: var(--surface); border: 1px solid var(--border); color: var(--ink-mid); font-size: 12px; padding: 7px 14px; border-radius: 2px; cursor: pointer; font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; transition: all 0.15s; letter-spacing: 0.02em; }
 .quick-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--gold-light); }
 
 .message { display: flex; gap: 14px; max-width: 800px; animation: fadeIn 0.2s ease; }
@@ -177,13 +177,13 @@ body {
 .message.user { flex-direction: row-reverse; margin-left: auto; }
 .message.assistant { margin-right: auto; }
 .msg-avatar { width: 30px; height: 30px; border-radius: 2px; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; margin-top: 2px; }
-.message.user .msg-avatar { background: var(--surface2); border: 1px solid var(--border); color: var(--ink-dim); font-family: 'Noto Serif SC', serif; font-weight: 600; }
+.message.user .msg-avatar { background: var(--surface2); border: 1px solid var(--border); color: var(--ink-dim); font-family: 'STSong', 'SimSun', 'PingFang SC', serif; font-weight: 600; }
 .message.assistant .msg-avatar { background: var(--ink); color: var(--bg); }
 .msg-body { flex: 1; min-width: 0; }
 .msg-bubble { padding: 14px 18px; border-radius: 3px; font-size: 14px; line-height: 1.8; }
 .message.user .msg-bubble { background: var(--surface); border: 1px solid var(--border); color: var(--ink); border-top-right-radius: 0; }
 .message.assistant .msg-bubble { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--ink); border-top-left-radius: 0; color: var(--ink); }
-.msg-bubble h3 { font-family: 'Noto Serif SC', serif; font-size: 13px; font-weight: 600; color: var(--ink); margin: 16px 0 8px; padding-bottom: 5px; border-bottom: 1px solid var(--border); letter-spacing: 0.03em; }
+.msg-bubble h3 { font-family: 'STSong', 'SimSun', 'PingFang SC', serif; font-size: 13px; font-weight: 600; color: var(--ink); margin: 16px 0 8px; padding-bottom: 5px; border-bottom: 1px solid var(--border); letter-spacing: 0.03em; }
 .msg-bubble h3:first-child { margin-top: 0; }
 .msg-bubble p { margin-bottom: 8px; color: var(--ink-mid); }
 .msg-bubble p:last-child { margin-bottom: 0; }
@@ -196,8 +196,8 @@ body {
 .tag-sell { background: var(--green-light); color: var(--green); border: 1px solid var(--green-border); }
 .tag-watch{ background: var(--gold-light); color: var(--gold); border: 1px solid var(--gold-border); }
 .tag-no   { background: var(--surface2); color: var(--ink-dim); border: 1px solid var(--border); }
-.conclusion-box { background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 2px; font-size: 13px; margin-top: 12px; font-family: 'Noto Serif SC', serif; letter-spacing: 0.02em; line-height: 1.7; }
-.msg-time { font-size: 10px; color: var(--ink-muted); font-family: 'DM Mono', monospace; margin-top: 5px; letter-spacing: 0.03em; }
+.conclusion-box { background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 2px; font-size: 13px; margin-top: 12px; font-family: 'STSong', 'SimSun', 'PingFang SC', serif; letter-spacing: 0.02em; line-height: 1.7; }
+.msg-time { font-size: 10px; color: var(--ink-muted); font-family: 'SF Mono', 'Courier New', monospace; margin-top: 5px; letter-spacing: 0.03em; }
 .message.user .msg-time { text-align: right; }
 
 .typing-wrap { display: flex; gap: 14px; animation: fadeIn 0.2s ease; }
@@ -209,10 +209,10 @@ body {
 
 #input-area { border-top: 1px solid var(--border); background: var(--surface); padding: 16px 24px 18px; }
 .input-wrap { display: flex; gap: 10px; align-items: flex-end; max-width: 800px; margin: 0 auto; }
-#user-input { flex: 1; background: var(--bg); border: 1px solid var(--border); color: var(--ink); font-family: 'Noto Sans SC', sans-serif; font-size: 14px; border-radius: 3px; padding: 11px 16px; outline: none; resize: none; max-height: 120px; line-height: 1.6; transition: border-color 0.15s; }
+#user-input { flex: 1; background: var(--bg); border: 1px solid var(--border); color: var(--ink); font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; font-size: 14px; border-radius: 3px; padding: 11px 16px; outline: none; resize: none; max-height: 120px; line-height: 1.6; transition: border-color 0.15s; }
 #user-input:focus { border-color: var(--border-dark); }
 #user-input::placeholder { color: var(--ink-muted); }
-#send-btn { height: 44px; padding: 0 20px; background: var(--ink); color: var(--bg); border: none; border-radius: 3px; font-family: 'Noto Sans SC', sans-serif; font-size: 12px; letter-spacing: 0.06em; cursor: pointer; transition: opacity 0.15s; flex-shrink: 0; }
+#send-btn { height: 44px; padding: 0 20px; background: var(--ink); color: var(--bg); border: none; border-radius: 3px; font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; font-size: 12px; letter-spacing: 0.06em; cursor: pointer; transition: opacity 0.15s; flex-shrink: 0; }
 #send-btn:hover { opacity: 0.85; }
 #send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 .input-hint { font-size: 10px; color: var(--ink-muted); text-align: center; margin-top: 7px; letter-spacing: 0.04em; }
@@ -223,10 +223,10 @@ body {
 .info-title { font-size: 10px; font-weight: 500; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; padding-bottom: 5px; border-bottom: 1px solid var(--border); }
 .info-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
 .info-key { color: var(--ink-dim); font-size: 11px; }
-.info-val { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--ink-mid); }
+.info-val { font-family: 'SF Mono', 'Courier New', monospace; font-size: 11px; color: var(--ink-mid); }
 .portfolio-summary { background: var(--bg); border: 1px solid var(--border); border-radius: 2px; padding: 10px 12px; }
 .summary-label { font-size: 10px; color: var(--ink-muted); margin-bottom: 2px; }
-.summary-val { font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 500; color: var(--ink); }
+.summary-val { font-family: 'SF Mono', 'Courier New', monospace; font-size: 18px; font-weight: 500; color: var(--ink); }
 .summary-sub { font-size: 10px; color: var(--ink-dim); }
 .divider-line { height: 1px; background: var(--border); }
 .tip-box { background: var(--gold-light); border: 1px solid var(--gold-border); border-radius: 2px; padding: 10px 12px; font-size: 11px; color: var(--gold); line-height: 1.7; }
@@ -236,17 +236,17 @@ body {
 #modal-overlay.active { display: flex; }
 #modal { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; width: 460px; max-height: 85vh; overflow-y: auto; box-shadow: var(--shadow); }
 .modal-header { padding: 18px 22px 14px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-.modal-title { font-family: 'Noto Serif SC', serif; font-size: 15px; font-weight: 600; color: var(--ink); letter-spacing: 0.03em; }
+.modal-title { font-family: 'STSong', 'SimSun', 'PingFang SC', serif; font-size: 15px; font-weight: 600; color: var(--ink); letter-spacing: 0.03em; }
 .modal-close { background: none; border: none; font-size: 18px; color: var(--ink-dim); cursor: pointer; line-height: 1; }
 .modal-body { padding: 18px 22px; }
 .form-row { margin-bottom: 14px; }
 .form-label { font-size: 11px; color: var(--ink-dim); letter-spacing: 0.06em; margin-bottom: 5px; display: block; text-transform: uppercase; }
-.form-input { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--ink); font-family: 'Noto Sans SC', sans-serif; font-size: 13px; border-radius: 2px; padding: 8px 11px; outline: none; transition: border-color 0.15s; }
+.form-input { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--ink); font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; font-size: 13px; border-radius: 2px; padding: 8px 11px; outline: none; transition: border-color 0.15s; }
 .form-input:focus { border-color: var(--border-dark); }
 .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .modal-footer { padding: 14px 22px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
-.btn-cancel { background: none; border: 1px solid var(--border); color: var(--ink-dim); font-family: 'Noto Sans SC', sans-serif; font-size: 12px; padding: 7px 16px; border-radius: 2px; cursor: pointer; }
-.btn-confirm { background: var(--ink); border: none; color: var(--bg); font-family: 'Noto Sans SC', sans-serif; font-size: 12px; padding: 7px 16px; border-radius: 2px; cursor: pointer; }
+.btn-cancel { background: none; border: 1px solid var(--border); color: var(--ink-dim); font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; font-size: 12px; padding: 7px 16px; border-radius: 2px; cursor: pointer; }
+.btn-confirm { background: var(--ink); border: none; color: var(--bg); font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; font-size: 12px; padding: 7px 16px; border-radius: 2px; cursor: pointer; }
 .form-hint { font-size: 11px; color: var(--ink-muted); margin-top: 6px; line-height: 1.6; }
 
 /* Shortcut bar */
@@ -283,7 +283,7 @@ body {
   padding: 4px 10px;
   border-radius: 2px;
   cursor: pointer;
-  font-family: 'Noto Sans SC', sans-serif;
+  font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
   white-space: nowrap;
   transition: all 0.15s;
   flex-shrink: 0;
@@ -304,7 +304,7 @@ body {
   flex: 1; padding: 8px; background: none;
   border: 1px solid var(--border); border-radius: 3px;
   color: var(--ink-dim); font-size: 11px; cursor: pointer;
-  font-family: 'Noto Sans SC', sans-serif; letter-spacing: 0.03em;
+  font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; letter-spacing: 0.03em;
   transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 4px;
 }
 .export-btn:hover { border-color: var(--border-dark); color: var(--ink-mid); background: var(--surface2); }
@@ -312,7 +312,7 @@ body {
   flex: 1; padding: 8px; background: none;
   border: 1px solid var(--border); border-radius: 3px;
   color: var(--ink-dim); font-size: 11px; cursor: pointer;
-  font-family: 'Noto Sans SC', sans-serif; letter-spacing: 0.03em;
+  font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; letter-spacing: 0.03em;
   transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 4px;
 }
 .import-btn:hover { border-color: var(--border-dark); color: var(--ink-mid); background: var(--surface2); }
@@ -322,12 +322,12 @@ body {
 #import-overlay.active { display: flex; }
 #import-modal { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; width: 480px; box-shadow: var(--shadow); }
 .import-header { padding: 18px 22px 14px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-.import-title { font-family: 'Noto Serif SC', serif; font-size: 15px; font-weight: 600; color: var(--ink); }
+.import-title { font-family: 'STSong', 'SimSun', 'PingFang SC', serif; font-size: 15px; font-weight: 600; color: var(--ink); }
 .import-body { padding: 18px 22px; }
 .import-textarea {
   width: 100%; height: 160px; background: var(--bg);
   border: 1px solid var(--border); color: var(--ink);
-  font-family: 'DM Mono', monospace; font-size: 12px;
+  font-family: 'SF Mono', 'Courier New', monospace; font-size: 12px;
   border-radius: 2px; padding: 10px 12px; outline: none;
   resize: none; line-height: 1.6;
 }
@@ -339,7 +339,7 @@ body {
 .calc-toggle {
   display: inline-flex; align-items: center; gap: 5px;
   font-size: 11px; color: var(--gold); cursor: pointer;
-  background: none; border: none; font-family: 'Noto Sans SC', sans-serif;
+  background: none; border: none; font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
   padding: 0; margin-top: 4px; text-decoration: underline; text-underline-offset: 2px;
 }
 #calc-panel {
@@ -363,14 +363,14 @@ body {
 }
 .calc-input {
   background: white; border: 1px solid var(--gold-border);
-  color: var(--ink); font-family: 'DM Mono', monospace;
+  color: var(--ink); font-family: 'SF Mono', 'Courier New', monospace;
   font-size: 12px; border-radius: 2px; padding: 5px 8px;
   outline: none; width: 100%;
 }
 .calc-input:focus { border-color: var(--gold); }
 .calc-date-input {
   background: white; border: 1px solid var(--gold-border);
-  color: var(--ink); font-family: 'Noto Sans SC', sans-serif;
+  color: var(--ink); font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
   font-size: 11px; border-radius: 2px; padding: 5px 6px;
   outline: none; width: 100%;
 }
@@ -383,7 +383,7 @@ body {
 .calc-add-btn {
   background: none; border: 1px dashed var(--gold-border);
   color: var(--gold); font-size: 11px; cursor: pointer;
-  font-family: 'Noto Sans SC', sans-serif;
+  font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
   padding: 5px; border-radius: 2px; width: 100%;
   margin-top: 4px; transition: background 0.15s;
 }
@@ -397,11 +397,11 @@ body {
 .calc-result-row { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 12px; }
 .calc-result-row:last-child { margin-bottom: 0; }
 .calc-result-key { color: var(--ink-dim); }
-.calc-result-val { font-family: 'DM Mono', monospace; color: var(--ink); font-weight: 500; }
+.calc-result-val { font-family: 'SF Mono', 'Courier New', monospace; color: var(--ink); font-weight: 500; }
 .calc-apply-btn {
   width: 100%; margin-top: 8px;
   background: var(--gold); color: white; border: none;
-  font-family: 'Noto Sans SC', sans-serif; font-size: 11px;
+  font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; font-size: 11px;
   padding: 7px; border-radius: 2px; cursor: pointer;
   letter-spacing: 0.04em; transition: opacity 0.15s;
 }
@@ -1035,7 +1035,7 @@ function sysNote(text) {
   const msgs = document.getElementById('messages');
   document.getElementById('welcome')?.remove();
   const el = document.createElement('div');
-  el.style.cssText = 'text-align:center;font-size:11px;color:var(--green);font-family:DM Mono,monospace;padding:4px 0;animation:fadeIn 0.2s ease;';
+  el.style.cssText = "text-align:center;font-size:11px;color:var(--green);font-family:monospace;padding:4px 0;animation:fadeIn 0.2s ease;";
   el.textContent = text;
   msgs.appendChild(el);
   msgs.scrollTop = msgs.scrollHeight;
@@ -1110,12 +1110,12 @@ function confirmImport() {
     const parsed = JSON.parse(raw);
     const data = parsed.holdings || parsed; // support both wrapped and raw array
     if (!Array.isArray(data)) throw new Error('格式错误');
-    if (!confirm(\`即将导入 \${data.length} 只基金的持仓数据，当前数据将被覆盖，确认吗？\`)) return;
+    if (!confirm('即将导入 ' + data.length + ' 只基金的持仓数据，当前数据将被覆盖，确认吗？')) return;
     holdings = data;
     save();
     renderHoldings();
     closeImport();
-    sysNote(\`✅ 已成功导入 \${data.length} 只基金的持仓数据\`);
+    sysNote('✅ 已成功导入 ' + data.length + ' 只基金的持仓数据');
   } catch(e) {
     alert('数据格式不正确，请确认粘贴的是完整的导出内容');
   }
